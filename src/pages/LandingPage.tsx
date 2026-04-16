@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Star, Heart, Calendar, Gift, Send } from 'lucide-react';
 import { sendConfirmation } from '../services/evolutionApi';
+import bannerImg from '../assets/hero.png';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const LandingPage = () => {
         className="relative h-[60vh] flex items-center justify-center overflow-hidden"
       >
         <img 
-          src="https://raw.githubusercontent.com/performancedigital/xikita/main/banner.png" 
+          src={bannerImg} 
           alt="Aniversário Xikita" 
           className="absolute inset-0 w-full h-full object-cover brightness-75"
           onError={(e) => {
