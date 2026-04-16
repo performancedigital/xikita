@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+  --xikita-red: #ED1C24;
+  --xikita-yellow: #FFF200;
+  --xikita-pink: #E6007E;
+  --xikita-orange: #F4911E;
+  --xikita-green: #009543;
+  --xikita-blue: #00AEEF;
+  --xikita-bg: #FFFFFF;
+  --xikita-text: #333333;
+  --xikita-muted: #666666;
+  
+  --font-main: 'Outfit', sans-serif;
+  
+  --shadow-premium: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --border-radius-lg: 1.5rem;
+  --border-radius-md: 1rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--xikita-bg);
+  color: var(--xikita-text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: var(--font-main);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.premium-card {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-premium);
+  padding: 2rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--xikita-red), var(--xikita-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.rainbow-border {
+  position: relative;
+  background: white;
+  border-radius: var(--border-radius-md);
+}
+
+.rainbow-border::after {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  background: linear-gradient(45deg, var(--xikita-red), var(--xikita-yellow), var(--xikita-pink), var(--xikita-orange), var(--xikita-green), var(--xikita-blue));
+  z-index: -1;
+  border-radius: calc(var(--border-radius-md) + 2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease forwards;
+}
