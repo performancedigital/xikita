@@ -1,72 +1,63 @@
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle, ArrowRight, Camera } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 
-const SuccessPage = () => {
+export default function SuccessPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#ED1C24', '#00AEEF', '#FFF200']
-    });
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#ED1C24', '#00AEEF', '#FFF200', '#E6007E'] });
   }, []);
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full text-center"
-      >
-        <div className="mb-8">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', damping: 12 }}
-          >
-            <CheckCircle className="w-24 h-24 text-[var(--xikita-green)] mx-auto" />
-          </motion.div>
-        </div>
-
-        <h1 className="text-3xl font-bold mb-4">Cadastro Realizado! 🎉</h1>
-        <p className="text-gray-600 mb-8 text-lg">
-          Você já está participando do nosso **Clube das Mamães**. Agora é só aguardar o sorteio dia 09 de maio!
+    <div className="success-page">
+      <div className="success-box">
+        <div style={{ fontSize: 72, marginBottom: 8 }}>🎉</div>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text)', marginBottom: 10 }}>
+          Você está dentro!
+        </h1>
+        <p style={{ color: 'var(--muted)', marginBottom: 28, lineHeight: 1.7 }}>
+          Seu cadastro no <strong>Clube das Mamães</strong> foi confirmado. Em instantes você receberá uma mensagem de confirmação no WhatsApp. 📱
         </p>
 
-        <div className="space-y-4">
-          <a 
-            href="https://wa.me/553289993351896" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="block w-full bg-[var(--xikita-green)] text-white py-4 rounded-xl font-bold text-lg hover:brightness-110 shadow-lg flex items-center justify-center gap-2"
-          >
-            Falar no WhatsApp <ArrowRight className="w-5 h-5" />
-          </a>
+        <div style={{ background: 'var(--bg)', borderRadius: 16, padding: '18px 24px', marginBottom: 28, textAlign: 'left' }}>
+          <p style={{ fontWeight: 700, marginBottom: 8 }}>✅ Próximos passos:</p>
+          <ol style={{ paddingLeft: 18, color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 2 }}>
+            <li>Visite a loja nos dias <strong>07, 08 ou 09 de Maio</strong></li>
+            <li>A cada <strong>R$ 100 em compras</strong> você ganha 1 cupom</li>
+            <li>Seus cupons serão enviados por <strong>WhatsApp</strong></li>
+            <li>Torça pelo sorteio ao vivo em <strong>09/05</strong> 🤞</li>
+          </ol>
+        </div>
 
-          <a 
-            href="https://instagram.com/loja_xikita" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="block w-full bg-white text-[var(--xikita-pink)] border-2 border-[var(--xikita-pink)] py-4 rounded-xl font-bold text-lg hover:bg-pink-50 flex items-center justify-center gap-2"
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <a
+            href="https://instagram.com/loja_xikita"
+            target="_blank" rel="noreferrer"
+            style={{
+              display: 'block', width: '100%', padding: '16px',
+              background: 'linear-gradient(135deg, var(--pink), var(--red))',
+              color: 'white', fontWeight: 700, fontSize: '1rem', borderRadius: 16,
+              textDecoration: 'none', textAlign: 'center',
+              boxShadow: '0 8px 24px rgba(230,0,126,0.4)'
+            }}
           >
-            Seguir no Instagram <Camera className="w-5 h-5" />
+            📷 Seguir @loja_xikita
           </a>
-
-          <button 
+          <button
             onClick={() => navigate('/')}
-            className="text-gray-400 hover:text-gray-600 font-medium"
+            style={{
+              width: '100%', padding: '14px', background: 'none',
+              border: '2px solid rgba(230,0,126,0.2)',
+              borderRadius: 16, cursor: 'pointer',
+              fontFamily: 'Outfit, sans-serif', fontWeight: 600,
+              color: 'var(--pink)', fontSize: '0.95rem'
+            }}
           >
-            Voltar para a página inicial
+            ← Voltar para a página
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
-};
-
-export default SuccessPage;
+}

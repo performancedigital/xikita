@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Ticket, Trophy, Plus, MessageCircle, Search } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useNavigate } from 'react-router-dom';
 import { sendCoupons } from '../services/evolutionApi';
 
 interface Lead {
@@ -16,269 +15,385 @@ interface Lead {
   coupons: string[];
 }
 
-const AdminDashboard = () => {
+type Tab = 'leads' | 'sorteio';
+
+export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
+  const [tab, setTab] = useState<Tab>('leads');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [purchaseAmount, setPurchaseAmount] = useState('');
   const [winner, setWinner] = useState<Lead | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [sendingWA, setSendingWA] = useState<number | null>(null);
 
   useEffect(() => {
+    // Guard: verificar se está autenticado
+    if (!sessionStorage.getItem('xikita_admin')) {
+      navigate('/admin');
+      return;
+    }
     const saved = JSON.parse(localStorage.getItem('xikita_leads') || '[]');
-    setLeads(saved.map((l: any) => ({
-      ...l,
-      totalSpent: l.totalSpent || 0,
-      coupons: l.coupons || []
-    })));
-  }, []);
+    setLeads(saved.map((l: Lead) => ({ ...l, totalSpent: l.totalSpent || 0, coupons: l.coupons || [] })));
+  }, [navigate]);
 
-  const saveLeadsManager = (updatedLeads: Lead[]) => {
-    setLeads(updatedLeads);
-    localStorage.setItem('xikita_leads', JSON.stringify(updatedLeads));
+  const save = (updated: Lead[]) => {
+    setLeads(updated);
+    localStorage.setItem('xikita_leads', JSON.stringify(updated));
   };
+
+  const totalCoupons = leads.reduce((a, b) => a + b.coupons.length, 0);
+  const totalRevenue = leads.reduce((a, b) => a + b.totalSpent, 0);
 
   const handleAddPurchase = () => {
     if (!selectedLead || !purchaseAmount) return;
-    
-    const amount = parseFloat(purchaseAmount);
+    const amount = parseFloat(purchaseAmount.replace(',', '.'));
+    if (isNaN(amount) || amount <= 0) return;
     const newTotal = selectedLead.totalSpent + amount;
-    const totalCoupons = Math.floor(newTotal / 100);
-    
-    // Gerar novos cupons se o número total aumentou
-    const currentCouponCount = selectedLead.coupons.length;
+    const newCouponCount = Math.floor(newTotal / 100);
+    const existing = selectedLead.coupons.length;
     const newCoupons = [...selectedLead.coupons];
-    
-    for (let i = currentCouponCount + 1; i <= totalCoupons; i++) {
-      newCoupons.push(`XK-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
+    for (let i = existing + 1; i <= newCouponCount; i++) {
+      newCoupons.push(`XK-${Date.now().toString(36).toUpperCase().slice(-3)}${i.toString().padStart(3, '0')}`);
     }
-
-    const updatedLeads = leads.map(l => 
-      l.id === selectedLead.id 
-        ? { ...l, totalSpent: newTotal, coupons: newCoupons }
-        : l
+    const updated = leads.map(l =>
+      l.id === selectedLead.id ? { ...l, totalSpent: newTotal, coupons: newCoupons } : l
     );
-
-    saveLeadsManager(updatedLeads);
+    save(updated);
+    const updatedLead = updated.find(l => l.id === selectedLead.id)!;
+    // Enviar cupons novos via WhatsApp
+    const newOnes = newCoupons.slice(existing);
+    if (newOnes.length > 0) {
+      sendCoupons(updatedLead.name, updatedLead.whatsapp, newOnes).catch(() => {});
+    }
     setSelectedLead(null);
     setPurchaseAmount('');
-    
-    alert(`Sucesso! ${newCoupons.length - currentCouponCount} novos cupons gerados.`);
   };
 
-  const handleSendWhatsApp = async (lead: Lead) => {
-    if (lead.coupons.length === 0) return alert('Este lead não possui cupons!');
-    
+  const handleSendWA = async (lead: Lead) => {
+    if (lead.coupons.length === 0) { alert('Este lead não possui cupons ainda!'); return; }
+    setSendingWA(lead.id);
     try {
       await sendCoupons(lead.name, lead.whatsapp, lead.coupons);
-      alert(`Mensagem enviada com sucesso para ${lead.name}!`);
-    } catch (error) {
-      alert('Erro ao enviar mensagem. Verifique a API Key.');
+      alert(`✅ Cupons enviados por WhatsApp para ${lead.name}!`);
+    } catch {
+      alert('❌ Erro ao enviar. Verifique a API Key no Vercel.');
+    } finally {
+      setSendingWA(null);
     }
   };
 
   const handleDraw = () => {
-    const eligibleLeads = leads.filter(l => l.coupons.length > 0);
-    if (eligibleLeads.length === 0) return alert('Nenhum participante com cupons!');
-
+    const eligible = leads.filter(l => l.coupons.length > 0);
+    if (eligible.length === 0) { alert('Nenhum participante com cupons para sortear!'); return; }
     setIsDrawing(true);
     setWinner(null);
-
-    // Efeito de animação de sorteio
     let count = 0;
-    const interval = setInterval(() => {
-      const tempWinner = eligibleLeads[Math.floor(Math.random() * eligibleLeads.length)];
-      setWinner(tempWinner);
+    const timer = setInterval(() => {
+      setWinner(eligible[Math.floor(Math.random() * eligible.length)]);
       count++;
-      if (count > 20) {
-        clearInterval(interval);
+      if (count >= 25) {
+        clearInterval(timer);
+        const final = eligible[Math.floor(Math.random() * eligible.length)];
+        setWinner(final);
         setIsDrawing(false);
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#ED1C24', '#00AEEF', '#FFF200', '#E6007E']
-        });
+        confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, colors: ['#ED1C24', '#00AEEF', '#FFF200', '#E6007E'] });
       }
     }, 100);
   };
 
-  const filteredLeads = leads.filter(l => 
-    l.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    l.whatsapp.includes(searchTerm)
+  const filtered = leads.filter(l =>
+    l.name.toLowerCase().includes(search.toLowerCase()) ||
+    l.whatsapp.includes(search)
   );
 
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString('pt-BR');
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Painel Xikita</h1>
-          <p className="text-gray-500">Gestão da Campanha 9 Anos</p>
+    <div className="admin-wrapper">
+      {/* ── SIDEBAR ── */}
+      <aside className="admin-sidebar">
+        <div className="logo">
+          <div style={{ fontWeight: 900, fontSize: '1.1rem', color: 'white' }}>XIKITA</div>
+          <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: 1.5, marginTop: 4 }}>PAINEL ADMIN</div>
         </div>
-        
-        <div className="flex gap-4">
-          <button 
-            onClick={handleDraw}
-            disabled={isDrawing}
-            className="bg-[var(--xikita-pink)] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-md hover:brightness-110 disabled:opacity-50"
-          >
-            <Trophy className="w-5 h-5" /> {isDrawing ? 'Sorteando...' : 'Realizar Sorteio'}
+        <nav className="sidebar-nav">
+          <button className={tab === 'leads' ? 'active' : ''} onClick={() => setTab('leads')}>
+            👥 Participantes
           </button>
-        </div>
-      </header>
+          <button className={tab === 'sorteio' ? 'active' : ''} onClick={() => setTab('sorteio')}>
+            🏆 Sorteio
+          </button>
+          <a href="/" style={{ marginTop: 'auto' }}>
+            🌐 Ver Landing Page
+          </a>
+          <button onClick={() => { sessionStorage.removeItem('xikita_admin'); navigate('/admin'); }}
+            style={{ color: 'rgba(237,28,36,0.7)' }}>
+            🚪 Sair
+          </button>
+        </nav>
+      </aside>
 
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Stats */}
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="premium-card flex items-center gap-4">
-            <div className="p-4 bg-blue-100 rounded-2xl text-[var(--xikita-blue)]"><Users /></div>
-            <div><p className="text-sm text-gray-500">Total Leads</p><h4 className="text-2xl font-bold">{leads.length}</h4></div>
+      {/* ── MAIN ── */}
+      <main className="admin-main">
+        {/* Topbar */}
+        <div className="admin-topbar">
+          <div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text)' }}>
+              {tab === 'leads' ? '👥 Participantes' : '🏆 Sorteio'}
+            </h1>
+            <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Campanha Xikita 9 Anos • Sorteio: 09 de Maio</p>
           </div>
-          <div className="premium-card flex items-center gap-4">
-            <div className="p-4 bg-pink-100 rounded-2xl text-[var(--xikita-pink)]"><Ticket /></div>
-            <div><p className="text-sm text-gray-500">Cupons Gerados</p><h4 className="text-2xl font-bold">{leads.reduce((acc, curr) => acc + curr.coupons.length, 0)}</h4></div>
-          </div>
-          <div className="premium-card flex items-center gap-4">
-            <div className="p-4 bg-yellow-100 rounded-2xl text-yellow-600"><Trophy /></div>
-            <div><p className="text-sm text-gray-500">Sorteio</p><h4 className="text-2xl font-bold">09 de Maio</h4></div>
-          </div>
-        </div>
-
-        {/* Lead List */}
-        <div className="lg:col-span-2 premium-card">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Participantes</h2>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Buscar..." 
-                className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 outline-none"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+          {tab === 'leads' && (
+            <div className="search-input">
+              🔍
+              <input
+                placeholder="Buscar participante..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
               />
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b text-gray-400 text-sm">
-                  <th className="pb-4 font-medium">Nome</th>
-                  <th className="pb-4 font-medium">WhatsApp</th>
-                  <th className="pb-4 font-medium">Investido</th>
-                  <th className="pb-4 font-medium">Cupons</th>
-                  <th className="pb-4 font-medium">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredLeads.map(lead => (
-                  <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 font-medium">{lead.name}</td>
-                    <td className="py-4 text-gray-600">{lead.whatsapp}</td>
-                    <td className="py-4 font-bold text-green-600">R$ {lead.totalSpent.toFixed(2)}</td>
-                    <td className="py-4">
-                      <span className="bg-blue-50 text-[var(--xikita-blue)] px-3 py-1 rounded-full text-sm font-bold border border-blue-100">
-                        {lead.coupons.length}
-                      </span>
-                    </td>
-                    <td className="py-4">
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => setSelectedLead(lead)}
-                          className="p-2 hover:bg-gray-200 rounded-lg text-gray-600" title="Adicionar Compra"
-                        >
-                          <Plus className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => handleSendWhatsApp(lead)}
-                          className="p-2 hover:bg-green-100 rounded-lg text-green-600" 
-                          title="Enviar Cupons via WhatsApp"
-                        >
-                          <MessageCircle className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Winner Section */}
-        <div className="premium-card h-fit sticky top-8">
-          <h2 className="text-xl font-bold mb-6">Resultado do Sorteio</h2>
-          {winner ? (
-            <motion.div 
-              initial={{ scale: 0 }} 
-              animate={{ scale: 1 }}
-              className="text-center p-6 bg-yellow-50 rounded-3xl border-2 border-yellow-200"
-            >
-              <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-yellow-800">{winner.name}</h3>
-              <p className="text-yellow-600 font-medium mb-4">{winner.whatsapp}</p>
-              <div className="bg-white p-3 rounded-xl border-dashed border-2 border-yellow-300">
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Cupom Vencedor</p>
-                <p className="text-xl font-mono font-bold text-gray-800">{winner.coupons[Math.floor(Math.random() * winner.coupons.length)]}</p>
-              </div>
-            </motion.div>
-          ) : (
-            <div className="text-center py-12 text-gray-400 border-2 border-dashed rounded-3xl">
-              <p>O sorteio ainda não foi realizado.</p>
             </div>
           )}
         </div>
-      </main>
 
-      {/* Modal Adicionar Compra */}
-      <AnimatePresence>
-        {selectedLead && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl"
-            >
-              <h2 className="text-2xl font-bold mb-2">Registrar Venda</h2>
-              <p className="text-gray-500 mb-6">Inserir valor de compra para {selectedLead.name}</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Valor da Compra (R$)</label>
-                  <input 
-                    type="number" 
-                    className="w-full p-4 border rounded-xl text-2xl font-bold outline-none focus:ring-2 focus:ring-[var(--xikita-blue)]"
-                    placeholder="0.00"
-                    autoFocus
-                    value={purchaseAmount}
-                    onChange={e => setPurchaseAmount(e.target.value)}
-                  />
-                  <p className="text-xs text-gray-400 mt-2">Cada R$ 100 somados gera 1 novo cupom.</p>
-                </div>
-                
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => setSelectedLead(null)}
-                    className="flex-1 py-4 font-bold text-gray-500 hover:bg-gray-100 rounded-xl"
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    onClick={handleAddPurchase}
-                    className="flex-1 py-4 bg-[var(--xikita-blue)] text-white font-bold rounded-xl shadow-lg hover:brightness-110"
-                  >
-                    Confirmar
-                  </button>
-                </div>
+        {/* ── STATS ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 32 }}>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#EEF7FF' }}>👥</div>
+            <div>
+              <div className="stat-label">Total de Leads</div>
+              <div className="stat-value">{leads.length}</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#FFF0F7' }}>🎫</div>
+            <div>
+              <div className="stat-label">Cupons Gerados</div>
+              <div className="stat-value">{totalCoupons}</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#EEFAF4' }}>💰</div>
+            <div>
+              <div className="stat-label">Volume em Vendas</div>
+              <div className="stat-value">R$ {totalRevenue.toFixed(0)}</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#FFF8E8' }}>📅</div>
+            <div>
+              <div className="stat-label">Sorteio</div>
+              <div className="stat-value" style={{ fontSize: '1.1rem' }}>09/05</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TAB: LEADS ── */}
+        {tab === 'leads' && (
+          <div className="panel">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h2 className="panel-title">Lista de Participantes</h2>
+              <span className="badge badge-blue">{filtered.length} registro(s)</span>
+            </div>
+
+            {filtered.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--muted)' }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+                <p>Nenhum participante cadastrado ainda.</p>
+                <p style={{ fontSize: '0.85rem', marginTop: 8 }}>Os leads aparecerão aqui assim que alguém preencher o formulário.</p>
               </div>
-            </motion.div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>WhatsApp</th>
+                      <th>Cadastro</th>
+                      <th>Investido</th>
+                      <th>Cupons</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(lead => (
+                      <tr key={lead.id}>
+                        <td><strong>{lead.name}</strong></td>
+                        <td style={{ color: 'var(--muted)', fontFamily: 'monospace', fontSize: '0.85rem' }}>{lead.whatsapp}</td>
+                        <td style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{formatDate(lead.date)}</td>
+                        <td>
+                          <span style={{ fontWeight: 700, color: lead.totalSpent > 0 ? 'var(--green)' : 'var(--muted)' }}>
+                            {lead.totalSpent > 0 ? `R$ ${lead.totalSpent.toFixed(2)}` : '—'}
+                          </span>
+                        </td>
+                        <td>
+                          {lead.coupons.length > 0
+                            ? <span className="badge badge-pink">🎫 {lead.coupons.length}</span>
+                            : <span className="badge" style={{ background: '#F5F5F5', color: '#999' }}>0</span>}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              className="btn btn-outline"
+                              style={{ padding: '8px 12px', fontSize: '0.82rem' }}
+                              onClick={() => setSelectedLead(lead)}
+                              title="Registrar venda"
+                            >
+                              ➕ Venda
+                            </button>
+                            <button
+                              className="btn btn-success"
+                              style={{ padding: '8px 12px', fontSize: '0.82rem' }}
+                              onClick={() => handleSendWA(lead)}
+                              disabled={sendingWA === lead.id || lead.coupons.length === 0}
+                              title={lead.coupons.length === 0 ? 'Sem cupons para enviar' : 'Enviar cupons por WhatsApp'}
+                            >
+                              {sendingWA === lead.id ? '⏳' : '📲'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
-      </AnimatePresence>
+
+        {/* ── TAB: SORTEIO ── */}
+        {tab === 'sorteio' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            <div className="draw-box">
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🎰</div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: 8 }}>Realizar Sorteio</h2>
+              <p style={{ opacity: 0.7, marginBottom: 28, fontSize: '0.9rem' }}>
+                {totalCoupons} cupons no total • {leads.filter(l => l.coupons.length > 0).length} participantes com cupons
+              </p>
+              <button
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '1rem' }}
+                onClick={handleDraw}
+                disabled={isDrawing}
+              >
+                {isDrawing ? <span className="spin-text">🎲 Sorteando...</span> : '🎯 Iniciar Sorteio'}
+              </button>
+            </div>
+
+            <div>
+              {winner ? (
+                <div className="draw-winner">
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>
+                  <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#333', marginBottom: 6 }}>
+                    {winner.name}
+                  </h3>
+                  <p style={{ color: '#555', fontWeight: 600, marginBottom: 16 }}>{winner.whatsapp}</p>
+                  <div style={{ background: 'white', borderRadius: 16, padding: '16px 24px', display: 'inline-block' }}>
+                    <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#999', marginBottom: 4 }}>
+                      Cupons do Vencedor
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+                      {winner.coupons.map(c => (
+                        <span key={c} style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.9rem', background: '#FFF0F7', color: 'var(--pink)', padding: '4px 10px', borderRadius: 8 }}>
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="panel" style={{ textAlign: 'center', padding: '60px 32px' }}>
+                  <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🎫</div>
+                  <p style={{ color: 'var(--muted)', fontWeight: 500 }}>
+                    O resultado do sorteio aparecerá aqui.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Todos os cupons */}
+            <div className="panel" style={{ gridColumn: '1 / -1' }}>
+              <h2 className="panel-title">📋 Relação de Cupons</h2>
+              {leads.filter(l => l.coupons.length > 0).length === 0 ? (
+                <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '32px 0' }}>Nenhum cupom gerado ainda.</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Participante</th>
+                        <th>Investimento</th>
+                        <th>Cupons</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leads.filter(l => l.coupons.length > 0).map(lead => (
+                        <tr key={lead.id}>
+                          <td><strong>{lead.name}</strong><br /><span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{lead.whatsapp}</span></td>
+                          <td><span className="badge badge-green">R$ {lead.totalSpent.toFixed(2)}</span></td>
+                          <td>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                              {lead.coupons.map(c => (
+                                <span key={c} style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700, background: '#FFF0F7', color: 'var(--pink)', padding: '4px 10px', borderRadius: 8 }}>
+                                  {c}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* ── MODAL VENDA ── */}
+      {selectedLead && (
+        <div className="modal-overlay" onClick={() => setSelectedLead(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 36, marginBottom: 12, textAlign: 'center' }}>🛍️</div>
+            <h2 className="modal-title" style={{ textAlign: 'center' }}>Registrar Venda</h2>
+            <p className="modal-sub" style={{ textAlign: 'center' }}>
+              Para <strong>{selectedLead.name}</strong><br />
+              {selectedLead.totalSpent > 0 && `Total atual: R$ ${selectedLead.totalSpent.toFixed(2)} • ${selectedLead.coupons.length} cupons`}
+            </p>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: '0.875rem' }}>Valor da Compra (R$)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0,00"
+                autoFocus
+                value={purchaseAmount}
+                onChange={e => setPurchaseAmount(e.target.value)}
+                className="modal-input"
+              />
+              {purchaseAmount && (
+                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--green)', marginTop: 10, fontWeight: 600 }}>
+                  +{Math.max(0, Math.floor((selectedLead.totalSpent + parseFloat(purchaseAmount || '0')) / 100) - selectedLead.coupons.length)} novos cupons serão gerados
+                </p>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', padding: 14 }} onClick={() => setSelectedLead(null)}>
+                Cancelar
+              </button>
+              <button className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', padding: 14 }} onClick={handleAddPurchase}>
+                ✅ Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default AdminDashboard;
+}
