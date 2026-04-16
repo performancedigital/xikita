@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Star, Heart, Calendar, Gift, Send } from 'lucide-react';
+import { Star, Calendar, Gift, Send } from 'lucide-react';
 import { sendConfirmation } from '../services/evolutionApi';
 import bannerImg from '../assets/hero.png';
 

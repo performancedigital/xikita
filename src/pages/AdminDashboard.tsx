@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Ticket, Trophy, Plus, MessageCircle, Search } from 'lucide-react';
 import confetti from 'canvas-confetti';

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, ArrowRight, Instagram } from 'lucide-react';
+import { CheckCircle, ArrowRight, Camera } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 
@@ -54,7 +54,7 @@ const SuccessPage = () => {
             rel="noopener noreferrer"
             className="block w-full bg-white text-[var(--xikita-pink)] border-2 border-[var(--xikita-pink)] py-4 rounded-xl font-bold text-lg hover:bg-pink-50 flex items-center justify-center gap-2"
           >
-            Seguir no Instagram <Instagram className="w-5 h-5" />
+            Seguir no Instagram <Camera className="w-5 h-5" />
           </a>
 
           <button 
