@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { sendConfirmation } from '../services/evolutionApi';
 import logoImg from '../assets/logo.png';
 import heroCover from '../assets/hero-cover.png';
-import kitImg from '../assets/hero.png';
+import kitImg from '../assets/kit-real.jpg';
 
 export default function LandingPage() {
   const navigate = useNavigate();
