@@ -111,7 +111,7 @@ export default function LiveDraw() {
               🎰 Sorteio ao Vivo
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginTop: 4 }}>
-              09 de Maio de 2025 • 17h00 • Ao vivo nas redes sociais
+              09 de Maio de 2025 • 12h00 • Em nossas redes sociais
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
@@ -127,7 +127,7 @@ export default function LiveDraw() {
           {[
             { label: 'Participantes', value: totalParticipants, icon: '👥' },
             { label: 'Cupons Totais', value: allCoupons.length, icon: '🎫' },
-            { label: 'Horário', value: '17h00', icon: '⏰' },
+            { label: 'Horário', value: '12h00', icon: '⏰' },
           ].map(s => (
             <div key={s.label} style={{
               background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
