@@ -124,7 +124,11 @@ export default function AdminDashboard() {
             👥 Participantes
           </button>
           <button className={tab === 'sorteio' ? 'active' : ''} onClick={() => setTab('sorteio')}>
-            🏆 Sorteio
+            🏆 Sorteio (Painel)
+          </button>
+          <button onClick={() => navigate('/admin/sorteio-ao-vivo')}
+            style={{ color: '#FFE259', fontWeight: 700 }}>
+            🎰 Sorteio ao Vivo
           </button>
           <a href="/" style={{ marginTop: 'auto' }}>
             🌐 Ver Landing Page
