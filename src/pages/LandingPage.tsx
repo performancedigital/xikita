@@ -89,9 +89,9 @@ export default function LandingPage() {
         
         <div className="lp-dates-grid">
           {[
-            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'CAFÉ ESPECIAL, ATENDIMENTO VIP PARA MAMÃES' },
-            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'CAFÉ ESPECIAL, ATENDIMENTO VIP PARA MAMÃES' },
-            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'CAFÉ ESPECIAL, ATENDIMENTO VIP & SORTEIO 12:00h', highlight: true },
+            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'Café Especial, Atendimento VIP para Mamães' },
+            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'Café Especial, Atendimento VIP para Mamães' },
+            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'Café Especial, Atendimento VIP & Sorteio 12:00h', highlight: true },
           ].map(d => (
             <div key={d.day} className="lp-date-card" style={d.highlight ? { background: 'rgba(255,255,255,0.28)', border: '2px solid rgba(255,255,255,0.6)', minWidth: 220 } : { minWidth: 220 }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{d.icon}</div>
