@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sendConfirmation } from '../services/evolutionApi';
 import logoImg from '../assets/logo.png';
-import heroCover from '../assets/hero-cover.png';
-import kitImg from '../assets/kit-real.jpg';
+import heroBanner from '../assets/hero-banner-new.png';
+import kitImg from '../assets/kit-real-v2.jpg';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -37,81 +37,44 @@ export default function LandingPage() {
         </a>
       </nav>
 
-      {/* ── 2. HERO — capa com dizeres em português ── */}
-      <section className="lp-hero" style={{ padding: 0, minHeight: 'auto' }}>
+      {/* ── 2. HERO — Banner Full Width ── */}
+      <section className="lp-hero-banner-container">
         {/* Floating hearts */}
         <div className="hearts">
           {['5%','15%','25%','40%','55%','68%','80%','92%'].map((left, i) => (
             <span key={left} className="heart"
-              style={{ left, top: `${8 + (i * 10) % 65}%`, animationDelay: `${i * 0.9}s`, fontSize: `${10 + (i % 3) * 5}px` }}>
+              style={{ left, top: `${5 + (i * 12) % 80}%`, animationDelay: `${i * 0.8}s`, fontSize: `${12 + (i % 3) * 6}px` }}>
               🤍
             </span>
           ))}
         </div>
-
-        <div style={{
-          maxWidth: 1100, margin: '0 auto', display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: 0, alignItems: 'stretch', position: 'relative', zIndex: 1,
-        }}>
-          {/* LEFT — Texto limpo */}
-          <div style={{ padding: '64px 40px 64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            
-            {/* Título limpo — harmonizado (removida a tag Aniversário da Loja e 9 ANOS do Nav) */}
-            <div style={{ marginBottom: 24 }}>
-              <div className="script" style={{ fontSize: 'clamp(2.4rem, 5vw, 3.5rem)', color: 'var(--pink)', display: 'block', lineHeight: 1 }}>
-                Aniversário
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: -5 }}>
-                <span style={{ fontSize: 'clamp(5.5rem, 12vw, 8.5rem)', fontWeight: 900, color: 'var(--pink)', lineHeight: 0.85, textShadow: '0 4px 12px rgba(230,0,126,0.15)' }}>9</span>
-                <div style={{ paddingTop: 10 }}>
-                  <div className="script" style={{ fontSize: 'clamp(1.6rem, 4vw, 2.5rem)', color: 'var(--text)', lineHeight: 1 }}>da Loja</div>
-                  <div style={{ fontSize: 'clamp(0.65rem, 1.5vw, 0.8rem)', fontWeight: 800, color: 'var(--muted)', letterSpacing: 2, marginTop: 4 }}>MODA INFANTIL</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="script" style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.2rem)', color: 'var(--text)', marginBottom: 28, opacity: 0.88 }}>
-              &amp; <span style={{ color: 'var(--pink)' }}>Clube das Mamães</span> 💕
-            </div>
-
-            {/* Info card ("fase especial" em vez de única e sem botões nos benefícios) */}
-            <div className="lp-hero-card">
-              <h3>🤰 Cuidando de quem já cuida de alguém!</h3>
-              <p>Benefícios especiais para essa fase especial da sua vida. Cadastre-se e ganhe acesso a vantagens exclusivas para gestantes.</p>
-              <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: '16px', color: 'var(--text)', fontSize: '0.9rem', fontWeight: 600 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: 'var(--pink)' }}>🏷️</span> Descontos exclusivos</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: 'var(--pink)' }}>🎁</span> Brindes e mimos</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: 'var(--pink)' }}>🎫</span> Cupons de sorteio</span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 28, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <a href="#cadastro" className="lp-cta-primary">💝 Participar Agora</a>
-              <a href="#premio" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '15px 24px', background: 'rgba(255,255,255,0.75)',
-                backdropFilter: 'blur(10px)', border: '1.5px solid rgba(230,0,126,0.2)',
-                borderRadius: 100, fontWeight: 600, fontSize: '0.9rem',
-                color: 'var(--text)', textDecoration: 'none',
-              }}>
-                🎁 Ver o Prêmio
-              </a>
-            </div>
-          </div>
-
-          {/* RIGHT — Imagem da capa integrante com blend na lateral */}
-          <div style={{ position: 'relative', overflow: 'hidden' }}>
-            <img
-              src={heroCover}
-              alt="Campanha Xikita 9 Anos — Clube das Mamães"
-              style={{ width: '100%', height: '100%', minHeight: 480, objectFit: 'cover', display: 'block', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%)', maskImage: 'linear-gradient(to right, transparent 0%, black 10%)' }}
-            />
-          </div>
-        </div>
+        
+        <img src={heroBanner} alt="Aniversário Xikita 9 Anos" className="lp-hero-banner-img" />
       </section>
 
-      {/* ── DATAS — com horário do sorteio ajustado e unificadas ── */}
+      {/* ── 3. CARD DE BENEFÍCIOS (ABAIXO DO BANNER) ── */}
+      <div className="lp-hero-card-container">
+        <div className="lp-hero-card-floating">
+          <h3>🤱 Cuidando de quem já cuida de alguém!</h3>
+          <p>
+            Benefícios especiais para essa fase especial da sua vida. <br />
+            Cadastre-se e ganhe acesso a vantagens exclusivas para gestantes.
+          </p>
+          
+          <div className="lp-benefits-row">
+            <span className="lp-benefit-item">🏷️ Descontos exclusivos</span>
+            <span className="lp-benefit-item">🎁 Brindes e mimos</span>
+            <span className="lp-benefit-item">🎫 Cupons de sorteio</span>
+          </div>
+
+          <div className="lp-hero-actions">
+            <a href="#cadastro" className="lp-btn-pill-pink">❤️ Participar Agora</a>
+            <a href="#premio" className="lp-btn-pill-white">🎁 Ver o Prêmio</a>
+          </div>
+        </div>
+      </div>
+
+      {/* ── DATAS — Atualizado conforme imagem ── */}
       <section className="lp-dates">
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div className="script" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: 'white', display: 'block', marginBottom: 16 }}>
@@ -122,24 +85,20 @@ export default function LandingPage() {
               De hoje até o dia 09 de Maio: Ação de cadastro e cupons!
             </p>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem', marginTop: 16 }}>
-            Dias 07, 08 e 09: Café preparado com carinho para as nossas mamães ☕
-          </p>
         </div>
         
-        {/* Ajuste nos dias da semana e na hora do sorteio */}
         <div className="lp-dates-grid">
           {[
-            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'Café especial' },
-            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'Dia das Mães' },
-            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'Sorteio às 12h00', highlight: true },
+            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'CAFÉ ESPECIAL, ATENDIMENTO VIP PARA MAMÃES' },
+            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'CAFÉ ESPECIAL, ATENDIMENTO VIP PARA MAMÃES' },
+            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'CAFÉ ESPECIAL, ATENDIMENTO VIP & SORTEIO 12:00h', highlight: true },
           ].map(d => (
-            <div key={d.day} className="lp-date-card" style={d.highlight ? { background: 'rgba(255,255,255,0.28)', border: '2px solid rgba(255,255,255,0.6)' } : {}}>
+            <div key={d.day} className="lp-date-card" style={d.highlight ? { background: 'rgba(255,255,255,0.28)', border: '2px solid rgba(255,255,255,0.6)', minWidth: 220 } : { minWidth: 220 }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{d.icon}</div>
               <div className="lp-date-day">{d.day}</div>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, opacity: 0.95 }}>{d.month}</div>
               <div className="lp-date-label" style={{ fontWeight: 800, marginTop: 8 }}>{d.label}</div>
-              <div style={{ fontSize: '0.8rem', opacity: 0.9, marginTop: 4 }}>{d.desc}</div>
+              <div style={{ fontSize: '0.75rem', opacity: 0.9, marginTop: 8, lineHeight: 1.4, fontWeight: 600 }}>{d.desc}</div>
             </div>
           ))}
         </div>
@@ -149,23 +108,13 @@ export default function LandingPage() {
       <section className="lp-steps">
         <div className="lp-section-head">
           <span className="lp-section-label">Passo a passo</span>
-          {/* Interrogação inserida + parte em rosa */}
           <h2 className="lp-section-title">Como participar? <span className="script" style={{ color: 'var(--pink)' }}>É simples assim!</span></h2>
         </div>
         <div className="lp-steps-grid">
           {[
-            {
-              icon: '📝', title: '1. Cadastre-se Grátis',
-              desc: 'Preencha o formulário abaixo e entre para o Clube das Mamães. Rápido e totalmente gratuito!',
-            },
-            {
-              icon: '🛍️', title: '2. Compre na Xikita',
-              desc: 'Após realizar seu cadastro no clube, a cada R$ 100,00 em compras = 1 cupom para o nosso sorteio. Quanto mais você comprar, mais chances de ganhar! (A ação começa de hoje até o dia 09 de maio).',
-            },
-            {
-              icon: '🏆', title: '3. Sorteio - 09/05 em nossas redes',
-              desc: 'Acompanhe o sorteio em nossas redes sociais às 12h. Seus números serão enviados pelo WhatsApp após cada compra conforme as regras!',
-            },
+            { icon: '📝', title: '1. Cadastre-se Grátis', desc: 'Preencha o formulário abaixo e entre para o Clube das Mamães. Rápido e totalmente gratuito!' },
+            { icon: '🛍️', title: '2. Compre na Xikita', desc: 'A cada R$ 100,00 em compras = 1 cupom para o nosso sorteio. Quanto mais você comprar, mais chances de ganhar!' },
+            { icon: '🏆', title: '3. Sorteio - 09/05 em nossas redes', desc: 'Acompanhe o sorteio em nossas redes sociais às 12h. Seus números serão enviados pelo WhatsApp após cada compra!' },
           ].map((s, i) => (
             <div key={i} className="lp-step-card">
               <span className="lp-step-num">{i + 1}</span>
@@ -177,16 +126,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 4. PRÊMIO — Cores harmonizadas Verde Água ── */}
+      {/* ── 4. PRÊMIO — Nova imagem do kit ── */}
       <section id="premio" className="lp-prize">
         <div className="lp-prize-inner">
           <div>
-            {/* Imagem real do kit Buba Care */}
             <img src={kitImg} alt="Kit de Higiene Buba Care — Prêmio Xikita" className="lp-kit-img" />
           </div>
           <div>
             <span className="lp-section-label" style={{ color: '#00897B' }}>O Prêmio</span>
-            {/* Removido o "Premium" */}
             <h2 className="lp-section-title" style={{ marginBottom: 8, color: '#00695C' }}>
               Kit de Higiene<br />
               <span className="script" style={{ color: '#00897B' }}>Buba Care</span>
@@ -224,7 +171,7 @@ export default function LandingPage() {
             Participe do <span className="script" style={{ color: 'var(--pink)' }}>Clube das Mamães!</span>
           </h2>
           <p style={{ color: 'var(--muted)', marginTop: 10, fontSize: '0.95rem', maxWidth: 500, margin: '10px auto 0' }}>
-            Preencha seus dados abaixo. Após o cadastro você recebe confirmação no WhatsApp. Seus cupons são enviados automaticamente após cada compra na loja. 📱
+            Preencha seus dados abaixo. Após o cadastro você recebe confirmação no WhatsApp.📱
           </p>
         </div>
 
@@ -279,14 +226,11 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Destaque de como funciona o cupom com o sorteio as 12h */}
             <div style={{
               background: 'rgba(230,0,126,0.05)', border: '1px dashed rgba(230,0,126,0.25)',
               borderRadius: 14, padding: 16, marginBottom: 16, marginTop: 4,
             }}>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text)', fontWeight: 600, marginBottom: 4 }}>
-                🎫 Como funciona o cupom?
-              </p>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text)', fontWeight: 600, marginBottom: 4 }}> 🎫 Como funciona o cupom? </p>
               <p style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.6 }}>
                 Faça suas compras na loja até o dia 09 de Maio.<br />
                 A cada <strong>R$ 100 em compras</strong> você recebe <strong>1 cupom</strong> no WhatsApp.<br />
@@ -302,7 +246,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 5. FOOTER com link admin ── */}
+      {/* ── 5. FOOTER — Logo idêntica ao cabeçalho ── */}
       <footer className="lp-footer">
         <div style={{ marginBottom: 20 }}>
           <img src={logoImg} alt="Xikita Moda Infantil" style={{ height: 80, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
