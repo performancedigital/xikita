@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const EVOLUTION_API_URL = 'https://evolution.comperformance.com.br';
-const INSTANCE_ID = '79816B0D7673-4AD1-920D-32AAC2D78885';
+const INSTANCE_ID = 'XIkita Moda Infantil';
 
 // Nota: A API Key deve ser configurada no Vercel como VITE_EVOLUTION_API_KEY
 const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || '';

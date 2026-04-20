@@ -89,16 +89,16 @@ export default function LandingPage() {
         
         <div className="lp-dates-grid">
           {[
-            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'Café Especial, Atendimento VIP para Mamães' },
-            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'Café Especial, Atendimento VIP para Mamães' },
-            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'Café Especial, Atendimento VIP & Sorteio 12:00h', highlight: true },
+            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'Café especial, atendimento VIP para mamães' },
+            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'Café especial, atendimento VIP para mamães' },
+            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'Café especial, atendimento VIP & sorteio 12:00h', highlight: true },
           ].map(d => (
             <div key={d.day} className="lp-date-card" style={d.highlight ? { background: 'rgba(255,255,255,0.28)', border: '2px solid rgba(255,255,255,0.6)', minWidth: 220 } : { minWidth: 220 }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{d.icon}</div>
               <div className="lp-date-day">{d.day}</div>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, opacity: 0.95 }}>{d.month}</div>
               <div className="lp-date-label" style={{ fontWeight: 800, marginTop: 8 }}>{d.label}</div>
-              <div style={{ fontSize: '0.75rem', opacity: 0.9, marginTop: 8, lineHeight: 1.4, fontWeight: 600 }}>{d.desc}</div>
+              <div style={{ fontSize: '0.75rem', opacity: 0.9, marginTop: 8, lineHeight: 1.4, fontWeight: 400 }}>{d.desc}</div>
             </div>
           ))}
         </div>
