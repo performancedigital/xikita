@@ -25,16 +25,14 @@ export const sendMessage = async (number: string, text: string) => {
     const cleanNumber = number.replace(/\D/g, '');
     const formattedNumber = cleanNumber.length === 11 ? `55${cleanNumber}` : cleanNumber;
 
-    const response = await evolutionApi.post(`/message/sendText/${INSTANCE_ID}`, {
+    const response = await evolutionApi.post(`/message/sendText/${encodeURIComponent(INSTANCE_ID)}`, {
       number: formattedNumber,
       options: {
         delay: 1200,
         presence: 'composing',
         linkPreview: false
       },
-      textMessage: {
-        text: text
-      }
+      text: text
     });
 
     return response.data;
