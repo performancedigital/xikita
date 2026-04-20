@@ -218,7 +218,7 @@ export default function LiveDraw() {
                   boxShadow: isSpinning ? 'none' : '0 8px 24px rgba(230,0,126,0.5)',
                   transition: 'all 0.3s',
                 }}>
-                {isSpinning ? '🎰 Sorteando ao vivo...' : winner ? '🔄 Sortear Novamente' : '🎯 Iniciar Sorteio'}
+                {isSpinning ? '🎰 Sorteando...' : winner ? '🔄 Sortear Novamente' : '🎯 Iniciar Sorteio'}
               </button>
             </div>
 

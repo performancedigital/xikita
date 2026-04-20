@@ -343,7 +343,7 @@ body {
 
 /* ─── PRÊMIO ─── */
 .lp-prize {
-  background: var(--bg-hero);
+  background: linear-gradient(135deg, white 0%, #E0F2F1 100%);
   padding: 80px 20px;
 }
 
