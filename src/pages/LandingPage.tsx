@@ -29,7 +29,7 @@ export default function LandingPage() {
       {/* ── 1. NAV COM LOGO ── */}
       <nav className="lp-nav">
         <div className="lp-nav-logo">
-          <img src={logoImg} alt="Xikita Moda Infantil" style={{ height: 44, objectFit: 'contain' }} />
+          <img src={logoImg} alt="Xikita Moda Infantil" style={{ height: 60, objectFit: 'contain' }} />
         </div>
         <a href="https://instagram.com/loja_xikita" target="_blank" rel="noreferrer"
           style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', fontWeight: 600, color: 'var(--pink)', textDecoration: 'none' }}>
@@ -304,7 +304,9 @@ export default function LandingPage() {
 
       {/* ── 5. FOOTER com link admin ── */}
       <footer className="lp-footer">
-        <div style={{ fontSize: '1.6rem', marginBottom: 8 }}>💛</div>
+        <div style={{ marginBottom: 20 }}>
+          <img src={logoImg} alt="Xikita Moda Infantil" style={{ height: 80, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
+        </div>
         <p><strong>XIKITA MODA INFANTIL</strong></p>
         <p>9 Anos cuidando das famílias com amor e carinho</p>
         <p style={{ marginTop: 10 }}>
