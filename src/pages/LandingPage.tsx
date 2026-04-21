@@ -18,6 +18,15 @@ export default function LandingPage() {
     e.preventDefault();
     setLoading(true);
     const leads = JSON.parse(localStorage.getItem('xikita_leads') || '[]');
+    
+    // Bloquear duplicidade de telefone
+    const isDuplicate = leads.some((l: any) => l.whatsapp === form.whatsapp);
+    if (isDuplicate) {
+      alert("Você já está participando! Basta efetivar sua compra na loja até dia 09/05 para receber seus cupons e concorrer. Boa sorte! 🍀");
+      setLoading(false);
+      return;
+    }
+
     const newLead = { ...form, id: Date.now(), date: new Date().toISOString(), totalSpent: 0, coupons: [] };
     localStorage.setItem('xikita_leads', JSON.stringify([...leads, newLead]));
     sendConfirmation(form.name, form.whatsapp).catch(() => {});
