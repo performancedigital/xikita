@@ -3,15 +3,17 @@ import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { sendCoupons } from '../services/evolutionApi';
 
+import { supabase } from '../services/supabaseClient';
+
 interface Lead {
   id: number;
   name: string;
   whatsapp: string;
-  gestationTime: string;
-  isFirstBaby: string;
-  startedLayette: string;
-  date: string;
-  totalSpent: number;
+  gestation_time: string;
+  is_first_baby: string;
+  started_layette: string;
+  created_at: string;
+  total_spent: number;
   coupons: string[];
 }
 
@@ -28,46 +30,60 @@ export default function AdminDashboard() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [sendingWA, setSendingWA] = useState<number | null>(null);
 
+  const fetchLeads = async () => {
+    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    if (data) {
+      setLeads(data);
+    }
+  };
+
   useEffect(() => {
-    // Guard: verificar se está autenticado
     if (!sessionStorage.getItem('xikita_admin')) {
       navigate('/admin');
       return;
     }
-    const saved = JSON.parse(localStorage.getItem('xikita_leads') || '[]');
-    setLeads(saved.map((l: Lead) => ({ ...l, totalSpent: l.totalSpent || 0, coupons: l.coupons || [] })));
+    fetchLeads();
   }, [navigate]);
 
-  const save = (updated: Lead[]) => {
-    setLeads(updated);
-    localStorage.setItem('xikita_leads', JSON.stringify(updated));
-  };
+  const totalCoupons = leads.reduce((a, b) => a + (b.coupons ? b.coupons.length : 0), 0);
+  const totalRevenue = leads.reduce((a, b) => a + b.total_spent, 0);
 
-  const totalCoupons = leads.reduce((a, b) => a + b.coupons.length, 0);
-  const totalRevenue = leads.reduce((a, b) => a + b.totalSpent, 0);
-
-  const handleAddPurchase = () => {
+  const handleAddPurchase = async () => {
     if (!selectedLead || !purchaseAmount) return;
     const amount = parseFloat(purchaseAmount.replace(',', '.'));
     if (isNaN(amount) || amount <= 0) return;
-    const newTotal = selectedLead.totalSpent + amount;
+    
+    // Calcula novo total
+    const newTotal = selectedLead.total_spent + amount;
     const newCouponCount = Math.floor(newTotal / 100);
-    const existing = selectedLead.coupons.length;
-    const newCoupons = [...selectedLead.coupons];
+    const existing = selectedLead.coupons ? selectedLead.coupons.length : 0;
+    const newCoupons = selectedLead.coupons ? [...selectedLead.coupons] : [];
+    
     for (let i = existing + 1; i <= newCouponCount; i++) {
       newCoupons.push(`XK-${Date.now().toString(36).toUpperCase().slice(-3)}${i.toString().padStart(3, '0')}`);
     }
-    const updated = leads.map(l =>
-      l.id === selectedLead.id ? { ...l, totalSpent: newTotal, coupons: newCoupons } : l
-    );
-    save(updated);
-    const updatedLead = updated.find(l => l.id === selectedLead.id)!;
-    // Enviar TODOS os cupons via WhatsApp para confirmar status total
+
+    // Salva no Supabase
+    const { error } = await supabase
+      .from('leads')
+      .update({ total_spent: newTotal, coupons: newCoupons })
+      .eq('id', selectedLead.id);
+
+    if (error) {
+      alert("Erro ao validar venda no banco de dados.");
+      return;
+    }
+
+    // Recarrega banco
+    await fetchLeads();
+
+    // Enviar TODOS os cupons via WhatsApp
     if (newCoupons.length > 0) {
-      sendCoupons(updatedLead.name, updatedLead.whatsapp, newCoupons).catch(err => {
+      sendCoupons(selectedLead.name, selectedLead.whatsapp, newCoupons).catch(err => {
         console.error('Erro no envio automático:', err);
       });
     }
+    
     setSelectedLead(null);
     setPurchaseAmount('');
   };
@@ -104,10 +120,14 @@ export default function AdminDashboard() {
     }, 100);
   };
 
-  const handleDeleteLead = (id: number) => {
+  const handleDeleteLead = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este participante e seus cupons? Esta ação não pode ser desfeita.')) {
-      const updated = leads.filter(l => l.id !== id);
-      save(updated);
+      const { error } = await supabase.from('leads').delete().eq('id', id);
+      if (!error) {
+        setLeads(leads.filter(l => l.id !== id));
+      } else {
+        alert("Erro ao tentar excluir no banco de dados.");
+      }
     }
   };
 
@@ -234,14 +254,14 @@ export default function AdminDashboard() {
                       <tr key={lead.id}>
                         <td><strong>{lead.name}</strong></td>
                         <td style={{ color: 'var(--muted)', fontFamily: 'monospace', fontSize: '0.85rem' }}>{lead.whatsapp}</td>
-                        <td style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{formatDate(lead.date)}</td>
+                        <td style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{formatDate(lead.created_at)}</td>
                         <td>
-                          <span style={{ fontWeight: 700, color: lead.totalSpent > 0 ? 'var(--green)' : 'var(--muted)' }}>
-                            {lead.totalSpent > 0 ? `R$ ${lead.totalSpent.toFixed(2)}` : '—'}
+                          <span style={{ fontWeight: 700, color: lead.total_spent > 0 ? 'var(--green)' : 'var(--muted)' }}>
+                            {lead.total_spent > 0 ? `R$ ${lead.total_spent.toFixed(2)}` : '—'}
                           </span>
                         </td>
                         <td>
-                          {lead.coupons.length > 0
+                          {lead.coupons && lead.coupons.length > 0
                             ? <span className="badge badge-pink">🎫 {lead.coupons.length}</span>
                             : <span className="badge" style={{ background: '#F5F5F5', color: '#999' }}>0</span>}
                         </td>
@@ -352,10 +372,10 @@ export default function AdminDashboard() {
                       {leads.filter(l => l.coupons.length > 0).map(lead => (
                         <tr key={lead.id}>
                           <td><strong>{lead.name}</strong><br /><span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{lead.whatsapp}</span></td>
-                          <td><span className="badge badge-green">R$ {lead.totalSpent.toFixed(2)}</span></td>
+                          <td><span className="badge badge-green">R$ {lead.total_spent.toFixed(2)}</span></td>
                           <td>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                              {lead.coupons.map(c => (
+                              {lead.coupons && lead.coupons.map(c => (
                                 <span key={c} style={{ fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700, background: '#FFF0F7', color: 'var(--pink)', padding: '4px 10px', borderRadius: 8 }}>
                                   {c}
                                 </span>
@@ -381,7 +401,7 @@ export default function AdminDashboard() {
             <h2 className="modal-title" style={{ textAlign: 'center' }}>Registrar Venda</h2>
             <p className="modal-sub" style={{ textAlign: 'center' }}>
               Para <strong>{selectedLead.name}</strong><br />
-              {selectedLead.totalSpent > 0 && `Total atual: R$ ${selectedLead.totalSpent.toFixed(2)} • ${selectedLead.coupons.length} cupons`}
+              {selectedLead.total_spent > 0 && `Total atual: R$ ${selectedLead.total_spent.toFixed(2)} • ${selectedLead.coupons ? selectedLead.coupons.length : 0} cupons`}
             </p>
 
             <div style={{ marginBottom: 20 }}>
@@ -398,7 +418,7 @@ export default function AdminDashboard() {
               />
               {purchaseAmount && (
                 <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--green)', marginTop: 10, fontWeight: 600 }}>
-                  +{Math.max(0, Math.floor((selectedLead.totalSpent + parseFloat(purchaseAmount || '0')) / 100) - selectedLead.coupons.length)} novos cupons serão gerados
+                  +{Math.max(0, Math.floor((selectedLead.total_spent + parseFloat(purchaseAmount || '0')) / 100) - (selectedLead.coupons ? selectedLead.coupons.length : 0))} novos cupons serão gerados
                 </p>
               )}
             </div>

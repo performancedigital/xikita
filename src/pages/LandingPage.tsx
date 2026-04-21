@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sendConfirmation } from '../services/evolutionApi';
+import { supabase } from '../services/supabaseClient';
 import logoImg from '../assets/logo.png';
 import heroBanner from '../assets/banner-v3-alta.png';
 import kitImg from '../assets/kit-real-v2.jpg';
@@ -17,21 +18,45 @@ export default function LandingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const leads = JSON.parse(localStorage.getItem('xikita_leads') || '[]');
     
-    // Bloquear duplicidade de telefone
-    const isDuplicate = leads.some((l: any) => l.whatsapp === form.whatsapp);
-    if (isDuplicate) {
+    // Bloquear duplicidade de telefone consultando o banco
+    const cleanWhatsApp = form.whatsapp.trim();
+    const { data: existingLeads } = await supabase
+      .from('leads')
+      .select('id')
+      .eq('whatsapp', cleanWhatsApp);
+
+    if (existingLeads && existingLeads.length > 0) {
       alert("Você já está participando! Basta efetivar sua compra na loja até dia 09/05 para receber seus cupons e concorrer. Boa sorte! 🍀");
       setLoading(false);
       return;
     }
 
-    const newLead = { ...form, id: Date.now(), date: new Date().toISOString(), totalSpent: 0, coupons: [] };
-    localStorage.setItem('xikita_leads', JSON.stringify([...leads, newLead]));
+    const { error: insertError } = await supabase
+      .from('leads')
+      .insert([
+        {
+          name: form.name,
+          whatsapp: cleanWhatsApp,
+          gestation_time: form.gestationTime,
+          is_first_baby: form.isFirstBaby,
+          started_layette: form.startedLayette,
+          total_spent: 0,
+          coupons: []
+        }
+      ]);
+
+    if (insertError) {
+      console.error("Erro ao salvar no banco:", insertError);
+      alert("Houve um erro ao processar seu cadastro. Tente novamente.");
+      setLoading(false);
+      return;
+    }
+
     sendConfirmation(form.name, form.whatsapp).catch(() => {});
     navigate('/sucesso');
   };
+
 
   return (
     <div>
