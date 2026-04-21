@@ -8,8 +8,9 @@ export default function AdminLogin() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Senha simples para o MVP – pode ser substituída por autenticação real
-    if (pass === 'xikita2025') {
+    const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'xikita2025';
+
+    if (pass === adminPass) {
       sessionStorage.setItem('xikita_admin', 'true');
       navigate('/admin/painel');
     } else {
