@@ -57,6 +57,15 @@ body {
   gap: 10px;
 }
 
+.lp-nav-logo-img {
+  height: 60px;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .lp-nav-logo-img { height: 45px; }
+}
+
 .lp-nav-logo span.brand { font-weight: 900; font-size: 1.3rem; color: var(--pink); }
 .lp-nav-logo span.years {
   background: linear-gradient(135deg, var(--pink), var(--red));
@@ -87,6 +96,13 @@ body {
   padding: 0 20px;
   position: relative;
   z-index: 10;
+}
+
+@media (max-width: 640px) {
+  .lp-hero-card-container {
+    margin-top: -15px; /* Reduz a sobreposição no mobile para não cortar o título da imagem */
+    margin-bottom: 30px;
+  }
 }
 
 .lp-hero-card-floating {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sendConfirmation } from '../services/evolutionApi';
 import logoImg from '../assets/logo.png';
-import heroBanner from '../assets/hero-banner-new.png';
+import heroBanner from '../assets/banner-v3-alta.png';
 import kitImg from '../assets/kit-real-v2.jpg';
 
 export default function LandingPage() {
@@ -29,7 +29,7 @@ export default function LandingPage() {
       {/* ── 1. NAV COM LOGO ── */}
       <nav className="lp-nav">
         <div className="lp-nav-logo">
-          <img src={logoImg} alt="Xikita Moda Infantil" style={{ height: 60, objectFit: 'contain' }} />
+          <img src={logoImg} alt="Xikita Moda Infantil" className="lp-nav-logo-img" />
         </div>
         <a href="https://instagram.com/loja_xikita" target="_blank" rel="noreferrer"
           style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', fontWeight: 600, color: 'var(--pink)', textDecoration: 'none' }}>
@@ -89,9 +89,9 @@ export default function LandingPage() {
         
         <div className="lp-dates-grid">
           {[
-            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'Café especial, atendimento VIP para mamães' },
-            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'Café especial, atendimento VIP para mamães' },
-            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'Café especial, atendimento VIP & sorteio 12:00h', highlight: true },
+            { day: '07', month: 'Maio', label: 'Quinta', icon: '☕', desc: 'Café especial, atendimento VIP para gestantes' },
+            { day: '08', month: 'Maio', label: 'Sexta', icon: '💐', desc: 'Café especial, atendimento VIP para gestantes' },
+            { day: '09', month: 'Maio', label: 'Sábado', icon: '🏆', desc: 'Café especial, atendimento VIP & sorteio 12h00', highlight: true },
           ].map(d => (
             <div key={d.day} className="lp-date-card" style={d.highlight ? { background: 'rgba(255,255,255,0.28)', border: '2px solid rgba(255,255,255,0.6)', minWidth: 220 } : { minWidth: 220 }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{d.icon}</div>
@@ -112,7 +112,7 @@ export default function LandingPage() {
         </div>
         <div className="lp-steps-grid">
           {[
-            { icon: '📝', title: '1. Cadastre-se Grátis', desc: 'Preencha o formulário abaixo e entre para o Clube das Mamães. Rápido e totalmente gratuito!' },
+            { icon: '📝', title: '1. Cadastre-se Grátis', desc: 'Preencha o formulário abaixo e entre para o Clube das Gestantes. Rápido e totalmente gratuito!' },
             { icon: '🛍️', title: '2. Compre na Xikita', desc: 'A cada R$ 100,00 em compras = 1 cupom para o nosso sorteio. Quanto mais você comprar, mais chances de ganhar!' },
             { icon: '🏆', title: '3. Sorteio - 09/05 em nossas redes', desc: 'Acompanhe o sorteio em nossas redes sociais às 12h. Seus números serão enviados pelo WhatsApp após cada compra!' },
           ].map((s, i) => (
@@ -168,7 +168,7 @@ export default function LandingPage() {
         <div className="lp-section-head">
           <span className="lp-section-label">Cadastro gratuito</span>
           <h2 className="lp-section-title">
-            Participe do <span className="script" style={{ color: 'var(--pink)' }}>Clube das Mamães!</span>
+            Participe do <span className="script" style={{ color: 'var(--pink)' }}>Clube das Gestantes!</span>
           </h2>
           <p style={{ color: 'var(--muted)', marginTop: 10, fontSize: '0.95rem', maxWidth: 500, margin: '10px auto 0' }}>
             Preencha seus dados abaixo. Após o cadastro você recebe confirmação no WhatsApp.📱
@@ -249,7 +249,7 @@ export default function LandingPage() {
       {/* ── 5. FOOTER — Logo idêntica ao cabeçalho ── */}
       <footer className="lp-footer">
         <div style={{ marginBottom: 20 }}>
-          <img src={logoImg} alt="Xikita Moda Infantil" style={{ height: 80, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
+          <img src={logoImg} alt="Xikita Moda Infantil" style={{ height: 80, objectFit: 'contain' }} />
         </div>
         <p><strong>XIKITA MODA INFANTIL</strong></p>
         <p>9 Anos cuidando das famílias com amor e carinho</p>

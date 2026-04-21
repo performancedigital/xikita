@@ -43,7 +43,7 @@ export const sendMessage = async (number: string, text: string) => {
 };
 
 export const sendConfirmation = async (name: string, whatsapp: string) => {
-  const message = `Olá ${name}! 😍\n\nQue alegria ter você no Clube das Mamães da *XIKITA MODA INFANTIL*!\n\nSeu cadastro foi realizado com sucesso para a nossa campanha de 9 anos. 🎉\n\n*Seus benefícios exclusivos:*\n✅ Atendimento VIP na loja\n✅ Café Especial nos dias 07, 08 e 09 de Maio\n✅ Acesso a ofertas em primeira mão\n\n*Como ganhar o prêmio?*\nA cada R$ 100,00 em compras você ganha um cupom para concorrer ao nosso *Kit Buba Care* completo (🧺 cesta linda com itens de higiene).\n\nAproveite para garantir o enxoval e aumentar suas chances! Esperamos você na loja. ✨`;
+  const message = `Olá ${name}! 😍\n\nQue alegria ter você no Clube das Gestantes da *XIKITA MODA INFANTIL*!\n\nSeu cadastro foi realizado com sucesso para a nossa campanha de 9 anos. 🎉\n\n*Seus benefícios exclusivos:*\n✅ Atendimento VIP na loja\n✅ Café Especial nos dias 07, 08 e 09 de Maio\n✅ Acesso a ofertas em primeira mão\n\n*Como ganhar o prêmio?*\nA cada R$ 100,00 em compras você ganha um cupom para concorrer ao nosso *Kit Buba Care* completo (🧺 cesta linda com itens de higiene).\n\nAproveite para garantir o enxoval e aumentar suas chances! Esperamos você na loja. ✨`;
   return sendMessage(whatsapp, message);
 };
 

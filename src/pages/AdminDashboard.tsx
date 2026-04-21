@@ -62,10 +62,11 @@ export default function AdminDashboard() {
     );
     save(updated);
     const updatedLead = updated.find(l => l.id === selectedLead.id)!;
-    // Enviar cupons novos via WhatsApp
-    const newOnes = newCoupons.slice(existing);
-    if (newOnes.length > 0) {
-      sendCoupons(updatedLead.name, updatedLead.whatsapp, newOnes).catch(() => {});
+    // Enviar TODOS os cupons via WhatsApp para confirmar status total
+    if (newCoupons.length > 0) {
+      sendCoupons(updatedLead.name, updatedLead.whatsapp, newCoupons).catch(err => {
+        console.error('Erro no envio automático:', err);
+      });
     }
     setSelectedLead(null);
     setPurchaseAmount('');
@@ -101,6 +102,13 @@ export default function AdminDashboard() {
         confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, colors: ['#ED1C24', '#00AEEF', '#FFF200', '#E6007E'] });
       }
     }, 100);
+  };
+
+  const handleDeleteLead = (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este participante e seus cupons? Esta ação não pode ser desfeita.')) {
+      const updated = leads.filter(l => l.id !== id);
+      save(updated);
+    }
   };
 
   const filtered = leads.filter(l =>
@@ -255,6 +263,14 @@ export default function AdminDashboard() {
                               title={lead.coupons.length === 0 ? 'Sem cupons para enviar' : 'Enviar cupons por WhatsApp'}
                             >
                               {sendingWA === lead.id ? '⏳' : '📲'}
+                            </button>
+                            <button
+                              className="btn btn-outline"
+                              style={{ padding: '8px 12px', fontSize: '0.82rem', borderColor: 'rgba(237,28,36,0.3)', color: '#ED1C24' }}
+                              onClick={() => handleDeleteLead(lead.id)}
+                              title="Excluir participante"
+                            >
+                              🗑️
                             </button>
                           </div>
                         </td>
