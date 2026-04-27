@@ -35,7 +35,42 @@ export default function AdminDashboard() {
   const [broadcastStatus, setBroadcastStatus] = useState('');
 
   const fetchLeads = async () => {
+    // 1. Fetch da Nuvem
     const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    
+    // 2. Resgatar cadastros perdidos do navegador (LocalStorage)
+    const localLeads = JSON.parse(localStorage.getItem('xikita_leads') || '[]');
+    
+    if (localLeads.length > 0 && data) {
+      // Filtrar apenas os que ainda não estão na nuvem
+      const cloudWhatsapps = new Set(data.map((l: Lead) => l.whatsapp));
+      const missingLeads = localLeads.filter((l: any) => !cloudWhatsapps.has(l.whatsapp));
+      
+      if (missingLeads.length > 0) {
+        // Enviar silenciosamente para a nuvem
+        const insertPayload = missingLeads.map((l: any) => ({
+          name: l.name,
+          whatsapp: l.whatsapp,
+          gestation_time: l.gestationTime || l.gestation_time || '',
+          is_first_baby: l.isFirstBaby || l.is_first_baby || '',
+          started_layette: l.startedLayette || l.started_layette || '',
+          total_spent: l.totalSpent || 0,
+          coupons: l.coupons || [],
+          created_at: l.date || new Date().toISOString()
+        }));
+        
+        await supabase.from('leads').insert(insertPayload);
+      }
+      
+      // Limpa para não repetir
+      localStorage.removeItem('xikita_leads');
+      
+      // Atualiza a tela com todos unidos
+      const { data: updatedData } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+      if (updatedData) setLeads(updatedData);
+      return;
+    }
+
     if (data) {
       setLeads(data);
     }
