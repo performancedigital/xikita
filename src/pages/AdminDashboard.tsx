@@ -32,6 +32,7 @@ export default function AdminDashboard() {
   const [broadcastText, setBroadcastText] = useState('');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [broadcastProgress, setBroadcastProgress] = useState({ current: 0, total: 0 });
+  const [broadcastStatus, setBroadcastStatus] = useState('');
 
   const fetchLeads = async () => {
     const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
@@ -111,10 +112,12 @@ export default function AdminDashboard() {
     
     setIsBroadcasting(true);
     setBroadcastProgress({ current: 0, total: leads.length });
+    setBroadcastStatus('Iniciando o disparo...');
     
     let successCount = 0;
     for (let i = 0; i < leads.length; i++) {
       const lead = leads[i];
+      setBroadcastStatus(`Enviando para ${lead.name}...`);
       try {
         await sendMessage(lead.whatsapp, broadcastText);
         successCount++;
@@ -122,10 +125,20 @@ export default function AdminDashboard() {
         console.error(`Erro ao enviar para ${lead.name}`, err);
       }
       setBroadcastProgress({ current: i + 1, total: leads.length });
-      // Delay de 2 segundos entre mensagens para evitar Rate Limit
-      await new Promise(r => setTimeout(r, 2000));
+      
+      // Se não for o último lead, aguarda 60 segundos
+      if (i < leads.length - 1) {
+        let waitTime = 60;
+        const interval = setInterval(() => {
+          waitTime--;
+          setBroadcastStatus(`Mensagem entregue! Aguardando ${waitTime}s para o próximo...`);
+        }, 1000);
+        await new Promise(r => setTimeout(r, 60000));
+        clearInterval(interval);
+      }
     }
     
+    setBroadcastStatus('Disparo concluído!');
     alert(`Disparo finalizado!\n${successCount} de ${leads.length} mensagens entregues com sucesso.`);
     setIsBroadcasting(false);
     setBroadcastText('');
@@ -468,6 +481,9 @@ export default function AdminDashboard() {
                 </div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 8 }}>
                   Enviado: {broadcastProgress.current} de {broadcastProgress.total}
+                </p>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text)', marginTop: 8, fontWeight: 600 }}>
+                  {broadcastStatus}
                 </p>
                 <p style={{ fontSize: '0.75rem', color: '#ED1C24', marginTop: 12, fontWeight: 600 }}>
                   ⚠️ Não feche esta página até o término do envio.
