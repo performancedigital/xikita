@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
-import { sendCoupons } from '../services/evolutionApi';
+import { sendCoupons, sendMessage } from '../services/evolutionApi';
 
 import { supabase } from '../services/supabaseClient';
 
@@ -17,7 +17,7 @@ interface Lead {
   coupons: string[];
 }
 
-type Tab = 'leads' | 'sorteio';
+type Tab = 'leads' | 'sorteio' | 'disparo';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -29,6 +29,9 @@ export default function AdminDashboard() {
   const [winner, setWinner] = useState<Lead | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [sendingWA, setSendingWA] = useState<number | null>(null);
+  const [broadcastText, setBroadcastText] = useState('');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [broadcastProgress, setBroadcastProgress] = useState({ current: 0, total: 0 });
 
   const fetchLeads = async () => {
     const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
@@ -101,6 +104,33 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleBroadcast = async () => {
+    if (!broadcastText.trim()) { alert('Digite uma mensagem para o disparo!'); return; }
+    if (leads.length === 0) { alert('Nenhum participante cadastrado para receber.'); return; }
+    if (!window.confirm(`Tem certeza que deseja enviar esta mensagem para TODOS os ${leads.length} participantes?\n\nEste processo não poderá ser cancelado e levará alguns minutos para não ser bloqueado pelo WhatsApp.`)) return;
+    
+    setIsBroadcasting(true);
+    setBroadcastProgress({ current: 0, total: leads.length });
+    
+    let successCount = 0;
+    for (let i = 0; i < leads.length; i++) {
+      const lead = leads[i];
+      try {
+        await sendMessage(lead.whatsapp, broadcastText);
+        successCount++;
+      } catch (err) {
+        console.error(`Erro ao enviar para ${lead.name}`, err);
+      }
+      setBroadcastProgress({ current: i + 1, total: leads.length });
+      // Delay de 2 segundos entre mensagens para evitar Rate Limit
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    
+    alert(`Disparo finalizado!\n${successCount} de ${leads.length} mensagens entregues com sucesso.`);
+    setIsBroadcasting(false);
+    setBroadcastText('');
+  };
+
   const handleDraw = () => {
     const eligible = leads.filter(l => l.coupons.length > 0);
     if (eligible.length === 0) { alert('Nenhum participante com cupons para sortear!'); return; }
@@ -154,6 +184,9 @@ export default function AdminDashboard() {
           <button className={tab === 'sorteio' ? 'active' : ''} onClick={() => setTab('sorteio')}>
             🏆 Sorteio (Painel)
           </button>
+          <button className={tab === 'disparo' ? 'active' : ''} onClick={() => setTab('disparo')}>
+            📢 Mensagem P/ Todos
+          </button>
           <button onClick={() => navigate('/admin/sorteio-ao-vivo')}
             style={{ color: '#FFE259', fontWeight: 700 }}>
             🎰 Sorteio ao Vivo
@@ -174,7 +207,7 @@ export default function AdminDashboard() {
         <div className="admin-topbar">
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text)' }}>
-              {tab === 'leads' ? '👥 Participantes' : '🏆 Sorteio'}
+              {tab === 'leads' ? '👥 Participantes' : tab === 'sorteio' ? '🏆 Sorteio' : '📢 Disparo em Massa'}
             </h1>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Campanha Xikita 9 Anos • Sorteio: 09 de Maio</p>
           </div>
@@ -389,6 +422,67 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ── TAB: DISPARO EM MASSA ── */}
+        {tab === 'disparo' && (
+          <div className="panel" style={{ maxWidth: 700, margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>📢</div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text)' }}>Disparo de Mensagem</h2>
+              <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: 4 }}>
+                Envie uma mensagem personalizada simultânea para todos os <strong>{leads.length}</strong> participantes cadastrados.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, fontSize: '0.85rem' }}>Mensagem a ser enviada:</label>
+              <textarea
+                rows={8}
+                placeholder="Olá, mamãe! Temos uma novidade para o sorteio..."
+                value={broadcastText}
+                onChange={e => setBroadcastText(e.target.value)}
+                disabled={isBroadcasting}
+                style={{
+                  width: '100%', padding: '16px', borderRadius: 14,
+                  border: '2px solid rgba(230,0,126,0.15)',
+                  fontFamily: 'Outfit, sans-serif', fontSize: '0.95rem',
+                  resize: 'vertical', outline: 'none'
+                }}
+              />
+              <div style={{ textAlign: 'right', marginTop: 6, color: 'var(--muted)', fontSize: '0.8rem' }}>
+                {broadcastText.length} caracteres
+              </div>
+            </div>
+
+            {isBroadcasting ? (
+              <div style={{ background: '#F8F8FF', padding: 20, borderRadius: 14, textAlign: 'center' }}>
+                <p style={{ fontWeight: 700, color: 'var(--pink)', marginBottom: 12 }}>⏳ Enviando mensagens...</p>
+                <div style={{ background: 'rgba(230,0,126,0.1)', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ 
+                    background: 'var(--pink)', height: '100%', 
+                    width: `${(broadcastProgress.current / broadcastProgress.total) * 100}%`,
+                    transition: 'width 0.3s'
+                  }} />
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 8 }}>
+                  Enviado: {broadcastProgress.current} de {broadcastProgress.total}
+                </p>
+                <p style={{ fontSize: '0.75rem', color: '#ED1C24', marginTop: 12, fontWeight: 600 }}>
+                  ⚠️ Não feche esta página até o término do envio.
+                </p>
+              </div>
+            ) : (
+              <button
+                className="btn btn-primary"
+                style={{ width: '100%', padding: 18, fontSize: '1.05rem', justifyContent: 'center' }}
+                onClick={handleBroadcast}
+                disabled={!broadcastText.trim() || leads.length === 0}
+              >
+                🚀 Iniciar Disparo para {leads.length} contatos
+              </button>
+            )}
           </div>
         )}
       </main>
