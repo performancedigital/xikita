@@ -36,7 +36,11 @@ export default function AdminDashboard() {
 
   const fetchLeads = async () => {
     // 1. Fetch da Nuvem
-    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    
+    if (error) {
+      alert(`⚠️ ERRO AO CONECTAR COM A NUVEM:\n${error.message}\nVerifique se o banco Supabase foi apagado ou se a API Key (Anon Key) está correta.`);
+    }
     
     // 2. Resgatar cadastros perdidos do navegador (LocalStorage)
     const localLeads = JSON.parse(localStorage.getItem('xikita_leads') || '[]');
