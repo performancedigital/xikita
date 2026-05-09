@@ -414,7 +414,7 @@ export default function AdminDashboard() {
                   <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#333', marginBottom: 6 }}>
                     {winner.name}
                   </h3>
-                  <p style={{ color: '#555', fontWeight: 600, marginBottom: 16 }}>{winner.whatsapp}</p>
+
                   <div style={{ background: 'white', borderRadius: 16, padding: '16px 24px', display: 'inline-block' }}>
                     <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#999', marginBottom: 4 }}>
                       Cupons do Vencedor
